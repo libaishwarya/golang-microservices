@@ -1,20 +1,19 @@
 package main
 
 import (
-	"go-gin/routes"
-	"go-gin/store"
-
-	_ "github.com/go-sql-driver/mysql"
-
-	"github.com/gin-gonic/gin"
+	"log"
+	"myapp/server"
+	"myapp/store/mysql"
 )
 
 func main() {
+	db, err := mysql.NewDB()
+	if err != nil {
+		log.Fatalf("Could not connect to the database: %v", err)
+	}
+	defer db.Close()
 
-	dsn := "root:test@123!@tcp(127.0.0.1:3306)/golang_microservice"
-	store.Connection(dsn)
-	router := gin.Default()
-	routes.UserRoutes(router)
-
-	router.Run(":8080")
+	userStore := mysql.NewUserStore(db)
+	r := server.SetupRouter(userStore)
+	r.Run(":8080")
 }
