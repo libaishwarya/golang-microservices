@@ -5,19 +5,26 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type UserHandler struct {
-	store store.UserStore
+	store    store.UserStore
+	validate *validator.Validate
 }
 
 func NewUserHandler(store store.UserStore) *UserHandler {
-	return &UserHandler{store: store}
+	return &UserHandler{store: store, validate: validator.New()}
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
 	var user store.User
 	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validate.Struct(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -33,6 +40,11 @@ func (h *UserHandler) Register(c *gin.Context) {
 func (h *UserHandler) Login(c *gin.Context) {
 	var user store.User
 	if err := c.ShouldBindJSON(&user); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.validate.Struct(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
