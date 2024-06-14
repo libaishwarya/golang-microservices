@@ -2,8 +2,9 @@ package main
 
 import (
 	"log"
-	"myapp/server"
-	"myapp/store/mysql"
+
+	"github.com/libaishwarya/myapp/server"
+	"github.com/libaishwarya/myapp/store/mysql"
 )
 
 func main() {

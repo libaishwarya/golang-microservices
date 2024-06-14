@@ -1,7 +1,7 @@
 package server
 
 import (
-	"myapp/store"
+	"github.com/libaishwarya/myapp/store"
 
 	"github.com/gin-gonic/gin"
 )

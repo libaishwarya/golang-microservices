@@ -2,7 +2,8 @@ package mysql
 
 import (
 	"database/sql"
-	"myapp/store"
+
+	"github.com/libaishwarya/myapp/store"
 )
 
 type MySQLUserStore struct {

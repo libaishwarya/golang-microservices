@@ -2,7 +2,8 @@ package inmemory
 
 import (
 	"errors"
-	"myapp/store"
+
+	"github.com/libaishwarya/myapp/store"
 )
 
 type InMemoryUserStore struct {

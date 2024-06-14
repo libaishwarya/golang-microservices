@@ -1,11 +1,11 @@
 package server
 
 import (
-	"myapp/store"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/libaishwarya/myapp/store"
 )
 
 type UserHandler struct {

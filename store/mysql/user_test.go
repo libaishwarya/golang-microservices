@@ -1,8 +1,9 @@
 package mysql
 
 import (
-	"myapp/store"
 	"testing"
+
+	"github.com/libaishwarya/myapp/store"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"

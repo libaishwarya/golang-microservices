@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"myapp/store"
-	"myapp/store/inmemory"
+	"github.com/libaishwarya/myapp/store"
+	"github.com/libaishwarya/myapp/store/inmemory"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
