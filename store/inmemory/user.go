@@ -8,6 +8,7 @@ import (
 
 type InMemoryUserStore struct {
 	users map[string]*store.User
+	store []store.ExternalUser
 }
 
 func NewInMemoryUserStore() *InMemoryUserStore {
@@ -30,4 +31,9 @@ func (s *InMemoryUserStore) GetUserByEmail(email string) (*store.User, error) {
 		return nil, errors.New("user not found")
 	}
 	return user, nil
+}
+
+func (s *InMemoryUserStore) StoreRes(ExternalApi *store.ExternalUser) error {
+	s.store = append(s.store, *ExternalApi)
+	return nil
 }

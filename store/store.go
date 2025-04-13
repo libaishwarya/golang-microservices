@@ -9,4 +9,11 @@ type User struct {
 type UserStore interface {
 	CreateUser(user *User) error
 	GetUserByEmail(email string) (*User, error)
+	StoreRes(ExternalUser *ExternalUser) error
+}
+
+type ExternalUser struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }

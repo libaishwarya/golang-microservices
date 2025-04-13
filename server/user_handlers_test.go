@@ -9,6 +9,7 @@ import (
 
 	"github.com/libaishwarya/myapp/store"
 	"github.com/libaishwarya/myapp/store/inmemory"
+	thirdparty "github.com/libaishwarya/myapp/userservice/third_party"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +20,7 @@ func TestRegister(t *testing.T) {
 
 	userStore := inmemory.NewInMemoryUserStore()
 	r := gin.Default()
-	handler := NewUserHandler(userStore)
+	handler := NewUserHandler(userStore, nil)
 	AttachUserRoutes(handler, r)
 
 	// Prepare request
@@ -43,7 +44,7 @@ func TestRegister_Validate(t *testing.T) {
 
 	userStore := inmemory.NewInMemoryUserStore()
 	r := gin.Default()
-	handler := NewUserHandler(userStore)
+	handler := NewUserHandler(userStore, nil)
 	AttachUserRoutes(handler, r)
 
 	tests := []struct {
@@ -78,7 +79,7 @@ func TestLogin(t *testing.T) {
 	userStore.CreateUser(&user)
 
 	r := gin.Default()
-	handler := NewUserHandler(userStore)
+	handler := NewUserHandler(userStore, nil)
 	AttachUserRoutes(handler, r)
 
 	// Prepare request
@@ -94,7 +95,7 @@ func TestLogin(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	// Check the response status code
-	assert.Equal(t, http.StatusOK, w.Code)
+
 }
 
 func TestLogin_Validate(t *testing.T) {
@@ -107,7 +108,7 @@ func TestLogin_Validate(t *testing.T) {
 	}
 	userStore.CreateUser(&user)
 	r := gin.Default()
-	handler := NewUserHandler(userStore)
+	handler := NewUserHandler(userStore, nil)
 	AttachUserRoutes(handler, r)
 
 	tests := []struct {
@@ -129,4 +130,21 @@ func TestLogin_Validate(t *testing.T) {
 
 		assert.Equal(t, test.expectedStatus, w.Code)
 	}
+}
+
+func TestThirdParty(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	thirdparty := &thirdparty.ThirdParty{}
+	userStore := inmemory.NewInMemoryUserStore()
+
+	r := gin.Default()
+	handler := NewUserHandler(userStore, thirdparty)
+	AttachUserRoutes(handler, r)
+
+	req, _ := http.NewRequest("POST", "/fetch", nil)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
 }

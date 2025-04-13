@@ -6,11 +6,13 @@ import (
 	"github.com/libaishwarya/myapp/store"
 )
 
-type MySQLUserStore struct {
+type MySQLUserStore struct { // It is a struct that holds a database connection (*sql.DB).
 	db *sql.DB
 }
 
-func NewUserStore(db *sql.DB) *MySQLUserStore {
+func NewUserStore(db *sql.DB) *MySQLUserStore { //creates a new MySQLUserStore with that connection.
+	// Group all user-related DB functions (like create, get, update) in one place.
+	// Keep the *sql.DB connection inside so it can use it for database work.
 	return &MySQLUserStore{db: db}
 }
 
@@ -29,6 +31,11 @@ func (s *MySQLUserStore) GetUserByEmail(email string) (*store.User, error) {
 	return user, nil
 }
 
+func (s *MySQLUserStore) StoreRes(fetchApi *store.ExternalUser) error {
+	_, err := s.db.Exec("INSERT INTO fetch_users (id, name, email) VALUES (?, ?, ?)", fetchApi.ID, fetchApi.Name, fetchApi.Email)
+	return err
+}
+
 func NewDB() (*sql.DB, error) {
-	return sql.Open("mysql", "user:password@tcp(localhost:3306)/dbname")
+	return sql.Open("mysql", "myuser:mypassword@tcp(localhost:3306)/mydb")
 }

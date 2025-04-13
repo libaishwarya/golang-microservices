@@ -2,14 +2,15 @@ package server
 
 import (
 	"github.com/libaishwarya/myapp/store"
+	"github.com/libaishwarya/myapp/userservice"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(userStore store.UserStore) *gin.Engine {
+func SetupRouter(userStore store.UserStore, userService userservice.JsonPlaceholder) *gin.Engine {
 	r := gin.Default()
 
-	h := NewUserHandler(userStore)
+	h := NewUserHandler(userStore, userService)
 
 	AttachUserRoutes(h, r)
 
@@ -19,4 +20,6 @@ func SetupRouter(userStore store.UserStore) *gin.Engine {
 func AttachUserRoutes(h *UserHandler, r *gin.Engine) {
 	r.POST("/register", h.Register)
 	r.POST("/login", h.Login)
+	r.POST("/fetch", h.Store)
+
 }

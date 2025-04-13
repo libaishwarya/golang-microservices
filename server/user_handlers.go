@@ -6,15 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/libaishwarya/myapp/store"
+	"github.com/libaishwarya/myapp/userservice"
 )
 
 type UserHandler struct {
-	store    store.UserStore
-	validate *validator.Validate
+	store      store.UserStore
+	thirdparty userservice.JsonPlaceholder
+	validate   *validator.Validate
 }
 
-func NewUserHandler(store store.UserStore) *UserHandler {
-	return &UserHandler{store: store, validate: validator.New()}
+func NewUserHandler(store store.UserStore, thirdparty userservice.JsonPlaceholder) *UserHandler {
+	return &UserHandler{store: store, thirdparty: thirdparty, validate: validator.New()}
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
@@ -61,4 +63,30 @@ func (h *UserHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Login successful"})
+}
+
+func (h *UserHandler) Store(c *gin.Context) {
+	thirdPartyUsers, err := h.thirdparty.GetUsers()
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{"message": "failed to get users"})
+	}
+	var values []store.ExternalUser
+	for _, value := range thirdPartyUsers {
+		values = append(values, store.ExternalUser{
+			ID:    value.ID,
+			Name:  value.Name,
+			Email: value.Email,
+		})
+
+	}
+
+	for _, value := range values {
+		if err := h.store.StoreRes(&value); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not store the fetched data"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Fetched user data is stored successfully"})
+
 }
