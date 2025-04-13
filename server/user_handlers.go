@@ -69,7 +69,19 @@ func (h *UserHandler) Store(c *gin.Context) {
 	thirdPartyUsers, err := h.thirdparty.GetUsers()
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"message": "failed to get users"})
+		return
 	}
+
+	if len(thirdPartyUsers) == 2 {
+		c.JSON(http.StatusConflict, gin.H{"message": "only two users found"})
+		return
+	}
+
+	if len(thirdPartyUsers) > 20 {
+		c.JSON(http.StatusConflict, gin.H{"message": "more users found"})
+		return
+	}
+
 	var values []store.ExternalUser
 	for _, value := range thirdPartyUsers {
 		values = append(values, store.ExternalUser{

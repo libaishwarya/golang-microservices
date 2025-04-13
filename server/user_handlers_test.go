@@ -9,7 +9,8 @@ import (
 
 	"github.com/libaishwarya/myapp/store"
 	"github.com/libaishwarya/myapp/store/inmemory"
-	thirdparty "github.com/libaishwarya/myapp/userservice/third_party"
+	"github.com/libaishwarya/myapp/userservice"
+	mockthirdparty "github.com/libaishwarya/myapp/userservice/mock_third_party"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
@@ -93,9 +94,6 @@ func TestLogin(t *testing.T) {
 	// Perform the request
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
-
-	// Check the response status code
-
 }
 
 func TestLogin_Validate(t *testing.T) {
@@ -132,19 +130,185 @@ func TestLogin_Validate(t *testing.T) {
 	}
 }
 
-func TestThirdParty(t *testing.T) {
+// func TestThirdParty_Success(t *testing.T) {
+// 	gin.SetMode(gin.TestMode)
+// 	thirdparty := &mockthirdparty.MockThirdParty{}
+// 	userStore := inmemory.NewInMemoryUserStore()
+
+// 	r := gin.Default()
+// 	handler := NewUserHandler(userStore, thirdparty)
+// 	AttachUserRoutes(handler, r)
+
+// 	req, _ := http.NewRequest("POST", "/fetch", nil)
+// 	w := httptest.NewRecorder()
+// 	r.ServeHTTP(w, req)
+
+// 	assert.Equal(t, http.StatusOK, w.Code)
+
+// }
+
+// func TestThirdParty_Failure(t *testing.T) {
+// 	gin.SetMode(gin.TestMode)
+// 	thirdparty := &mockthirdparty.MockThirdParty{
+// 		Fail: true,
+// 	}
+// 	userStore := inmemory.NewInMemoryUserStore()
+
+// 	r := gin.Default()
+// 	handler := NewUserHandler(userStore, thirdparty)
+// 	AttachUserRoutes(handler, r)
+
+// 	req, _ := http.NewRequest("POST", "/fetch", nil)
+// 	w := httptest.NewRecorder()
+// 	r.ServeHTTP(w, req)
+
+// 	assert.Equal(t, http.StatusBadGateway, w.Code)
+
+// 	var body map[string]interface{}
+// 	err := json.NewDecoder(w.Body).Decode(&body)
+// 	assert.NoError(t, err)
+
+// 	assert.Equal(t, "failed to get users", body["message"])
+// }
+
+// func TestThirdParty_Failure_MoreUsers(t *testing.T) {
+// 	gin.SetMode(gin.TestMode)
+
+// 	users := []userservice.ThirdPartyUser{}
+// 	for i := 0; i < 25; i++ {
+// 		users = append(users, userservice.ThirdPartyUser{
+// 			Name:  "test",
+// 			Email: "test",
+// 		})
+// 	}
+
+// 	thirdparty := &mockthirdparty.MockThirdParty{
+// 		Users: users,
+// 	}
+// 	userStore := inmemory.NewInMemoryUserStore()
+
+// 	r := gin.Default()
+// 	handler := NewUserHandler(userStore, thirdparty)
+// 	AttachUserRoutes(handler, r)
+
+// 	req, _ := http.NewRequest("POST", "/fetch", nil)
+// 	w := httptest.NewRecorder()
+// 	r.ServeHTTP(w, req)
+
+// 	assert.Equal(t, http.StatusConflict, w.Code)
+
+// 	var body map[string]interface{}
+// 	err := json.NewDecoder(w.Body).Decode(&body)
+// 	assert.NoError(t, err)
+
+// 	assert.Equal(t, "more users found", body["message"])
+// }
+
+// func TestThirdParty_Failure_TwoUsers(t *testing.T) {
+// 	gin.SetMode(gin.TestMode)
+
+// 	users := []userservice.ThirdPartyUser{}
+// 	for i := 0; i < 2; i++ {
+// 		users = append(users, userservice.ThirdPartyUser{
+// 			Name:  "test",
+// 			Email: "test",
+// 		})
+// 	}
+
+// 	thirdparty := &mockthirdparty.MockThirdParty{
+// 		Users: users,
+// 	}
+// 	userStore := inmemory.NewInMemoryUserStore()
+
+// 	r := gin.Default()
+// 	handler := NewUserHandler(userStore, thirdparty)
+// 	AttachUserRoutes(handler, r)
+
+// 	req, _ := http.NewRequest("POST", "/fetch", nil)
+// 	w := httptest.NewRecorder()
+// 	r.ServeHTTP(w, req)
+
+// 	assert.Equal(t, http.StatusConflict, w.Code)
+
+// 	var body map[string]interface{}
+// 	err := json.NewDecoder(w.Body).Decode(&body)
+// 	assert.NoError(t, err)
+
+// 	assert.Equal(t, "only two users found", body["message"])
+// }
+
+func TestThirdParty_New(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	thirdparty := &thirdparty.ThirdParty{}
-	userStore := inmemory.NewInMemoryUserStore()
 
-	r := gin.Default()
-	handler := NewUserHandler(userStore, thirdparty)
-	AttachUserRoutes(handler, r)
+	tests := []struct {
+		Name            string
+		Fail            bool
+		MockUsersNumber int
+		ExpectedStatus  int
+		ExpectedMessage string
+	}{
+		{
+			"success",
+			false,
+			1,
+			http.StatusOK,
+			"Fetched user data is stored successfully",
+		},
+		{
+			"two users",
+			false,
+			2,
+			http.StatusConflict,
+			"only two users found",
+		},
+		{
+			"twenty plus users",
+			false,
+			21,
+			http.StatusConflict,
+			"more users found",
+		},
+		{
+			"get users failure",
+			true,
+			1,
+			http.StatusBadGateway,
+			"failed to get users",
+		},
+	}
 
-	req, _ := http.NewRequest("POST", "/fetch", nil)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			users := []userservice.ThirdPartyUser{}
+			for i := 0; i < tt.MockUsersNumber; i++ {
+				users = append(users, userservice.ThirdPartyUser{
+					Name:  "test",
+					Email: "test",
+				})
+			}
 
-	assert.Equal(t, http.StatusOK, w.Code)
+			thirdparty := &mockthirdparty.MockThirdParty{
+				Users: users,
+				Fail:  tt.Fail,
+			}
+			userStore := inmemory.NewInMemoryUserStore()
 
+			r := gin.Default()
+			handler := NewUserHandler(userStore, thirdparty)
+			AttachUserRoutes(handler, r)
+
+			req, _ := http.NewRequest("POST", "/fetch", nil)
+			w := httptest.NewRecorder()
+			r.ServeHTTP(w, req)
+
+			var body map[string]interface{}
+			err := json.NewDecoder(w.Body).Decode(&body)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.ExpectedStatus, w.Code)
+			assert.Equal(t, tt.ExpectedMessage, body["message"])
+
+		})
+
+	}
 }
