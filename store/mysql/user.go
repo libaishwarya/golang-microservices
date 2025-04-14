@@ -36,6 +36,10 @@ func (s *MySQLUserStore) StoreRes(fetchApi *store.ExternalUser) error {
 	return err
 }
 
+func (s *MySQLUserStore) StoreCatFact(catFact *store.CatFact) error {
+	_, err := s.db.Exec("INSERT INTO factCat (fact, length) VALUES (?, ?)", catFact.Fact, catFact.Length)
+	return err
+}
 func NewDB() (*sql.DB, error) {
 	return sql.Open("mysql", "myuser:mypassword@tcp(localhost:3306)/mydb")
 }

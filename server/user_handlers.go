@@ -7,6 +7,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/libaishwarya/myapp/store"
 	"github.com/libaishwarya/myapp/userservice"
+	"github.com/libaishwarya/myapp/userservice/realtimecatfact"
 )
 
 type UserHandler struct {
@@ -73,7 +74,7 @@ func (h *UserHandler) Store(c *gin.Context) {
 	}
 
 	if len(thirdPartyUsers) == 2 {
-		c.JSON(http.StatusConflict, gin.H{"message": "only two users found"})
+		c.JSON(http.StatusConflict, gin.H{"message": "only two user found"})
 		return
 	}
 
@@ -101,4 +102,25 @@ func (h *UserHandler) Store(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Fetched user data is stored successfully"})
 
+}
+
+func (h *UserHandler) StoreCatFact(c *gin.Context) {
+	realTimeCatFact := &realtimecatfact.RealTimeCatFact{}
+	fact, err := realTimeCatFact.GetCatFact()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch cat fact"})
+		return
+	}
+
+	storeFact := &store.CatFact{
+		Fact:   fact.Fact,
+		Length: fact.Length,
+	}
+
+	if err := h.store.StoreCatFact(storeFact); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not store the cat fact"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Cat fact stored successfully"})
 }

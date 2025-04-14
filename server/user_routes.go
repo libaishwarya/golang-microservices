@@ -21,5 +21,6 @@ func AttachUserRoutes(h *UserHandler, r *gin.Engine) {
 	r.POST("/register", h.Register)
 	r.POST("/login", h.Login)
 	r.POST("/fetch", h.Store)
+	r.GET("/fetchCat", h.StoreCatFact)
 
 }
