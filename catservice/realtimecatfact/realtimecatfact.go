@@ -4,15 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/libaishwarya/myapp/userservice"
+	"github.com/libaishwarya/myapp/catservice"
 )
 
 type RealTimeCatFact struct{}
 
-func (r *RealTimeCatFact) GetCatFact() (*userservice.CatFact, error) {
+func (r *RealTimeCatFact) GetCatFact() (catservice.CatFact, error) {
 	resp, err := http.Get("https://catfact.ninja/fact")
 	if err != nil {
-		return nil, err
+		return catservice.CatFact{}, err
 	}
 	defer resp.Body.Close()
 
@@ -22,10 +22,10 @@ func (r *RealTimeCatFact) GetCatFact() (*userservice.CatFact, error) {
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&factResponse); err != nil {
-		return nil, err
+		return catservice.CatFact{}, err
 	}
 
-	return &userservice.CatFact{
+	return catservice.CatFact{
 		Fact:   factResponse.Fact,
 		Length: factResponse.Length,
 	}, nil

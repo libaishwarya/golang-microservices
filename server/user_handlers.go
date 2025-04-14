@@ -5,19 +5,20 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/libaishwarya/myapp/catservice"
 	"github.com/libaishwarya/myapp/store"
 	"github.com/libaishwarya/myapp/userservice"
-	"github.com/libaishwarya/myapp/userservice/realtimecatfact"
 )
 
 type UserHandler struct {
 	store      store.UserStore
 	thirdparty userservice.JsonPlaceholder
+	catFact    catservice.CatFactService
 	validate   *validator.Validate
 }
 
-func NewUserHandler(store store.UserStore, thirdparty userservice.JsonPlaceholder) *UserHandler {
-	return &UserHandler{store: store, thirdparty: thirdparty, validate: validator.New()}
+func NewUserHandler(store store.UserStore, thirdparty userservice.JsonPlaceholder, catFact catservice.CatFactService) *UserHandler {
+	return &UserHandler{store: store, thirdparty: thirdparty, catFact: catFact, validate: validator.New()}
 }
 
 func (h *UserHandler) Register(c *gin.Context) {
@@ -105,10 +106,9 @@ func (h *UserHandler) Store(c *gin.Context) {
 }
 
 func (h *UserHandler) StoreCatFact(c *gin.Context) {
-	realTimeCatFact := &realtimecatfact.RealTimeCatFact{}
-	fact, err := realTimeCatFact.GetCatFact()
+	fact, err := h.catFact.GetCatFact()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not fetch cat fact"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not fetch cat fact"})
 		return
 	}
 
@@ -118,7 +118,7 @@ func (h *UserHandler) StoreCatFact(c *gin.Context) {
 	}
 
 	if err := h.store.StoreCatFact(storeFact); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not store the cat fact"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not store the cat fact"})
 		return
 	}
 

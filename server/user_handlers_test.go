@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/libaishwarya/myapp/catservice/mockcatfact"
 	"github.com/libaishwarya/myapp/store"
 	"github.com/libaishwarya/myapp/store/inmemory"
 	"github.com/libaishwarya/myapp/userservice"
@@ -21,7 +22,7 @@ func TestRegister(t *testing.T) {
 
 	userStore := inmemory.NewInMemoryUserStore()
 	r := gin.Default()
-	handler := NewUserHandler(userStore, nil)
+	handler := NewUserHandler(userStore, nil, nil)
 	AttachUserRoutes(handler, r)
 
 	// Prepare request
@@ -45,7 +46,7 @@ func TestRegister_Validate(t *testing.T) {
 
 	userStore := inmemory.NewInMemoryUserStore()
 	r := gin.Default()
-	handler := NewUserHandler(userStore, nil)
+	handler := NewUserHandler(userStore, nil, nil)
 	AttachUserRoutes(handler, r)
 
 	tests := []struct {
@@ -80,7 +81,7 @@ func TestLogin(t *testing.T) {
 	userStore.CreateUser(&user)
 
 	r := gin.Default()
-	handler := NewUserHandler(userStore, nil)
+	handler := NewUserHandler(userStore, nil, nil)
 	AttachUserRoutes(handler, r)
 
 	// Prepare request
@@ -106,7 +107,7 @@ func TestLogin_Validate(t *testing.T) {
 	}
 	userStore.CreateUser(&user)
 	r := gin.Default()
-	handler := NewUserHandler(userStore, nil)
+	handler := NewUserHandler(userStore, nil, nil)
 	AttachUserRoutes(handler, r)
 
 	tests := []struct {
@@ -294,7 +295,7 @@ func TestThirdParty_New(t *testing.T) {
 			userStore := inmemory.NewInMemoryUserStore()
 
 			r := gin.Default()
-			handler := NewUserHandler(userStore, thirdparty)
+			handler := NewUserHandler(userStore, thirdparty, nil)
 			AttachUserRoutes(handler, r)
 
 			req, _ := http.NewRequest("POST", "/fetch", nil)
@@ -310,5 +311,55 @@ func TestThirdParty_New(t *testing.T) {
 
 		})
 
+	}
+}
+
+func TestFetchCatFact(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	tests := []struct {
+		Name            string
+		Fail            bool
+		ExpectedStatus  int
+		ExpectedMessage string
+	}{
+		{
+			"success",
+			false,
+			http.StatusOK,
+			"Cat fact stored successfully",
+		},
+		{
+			"failure",
+			true,
+			http.StatusInternalServerError,
+			"Could not fetch cat fact",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.Name, func(t *testing.T) {
+			mockCatFactService := &mockcatfact.MockCatFact{Fail: tt.Fail}
+
+			userStore := inmemory.NewInMemoryUserStore()
+
+			handler := NewUserHandler(userStore, nil, mockCatFactService)
+			router := gin.Default()
+			AttachUserRoutes(handler, router)
+
+			req, _ := http.NewRequest("GET", "/fetchCat", nil)
+			resp := httptest.NewRecorder()
+
+			router.ServeHTTP(resp, req)
+
+			assert.Equal(t, tt.ExpectedStatus, resp.Code)
+
+			var body map[string]interface{}
+			err := json.NewDecoder(resp.Body).Decode(&body)
+			assert.NoError(t, err)
+
+			assert.Equal(t, tt.ExpectedMessage, body["message"])
+
+		})
 	}
 }

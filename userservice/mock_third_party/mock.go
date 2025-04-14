@@ -18,7 +18,7 @@ func (m MockThirdParty) GetUsers() ([]userservice.ThirdPartyUser, error) {
 
 	if m.Users == nil {
 		return []userservice.ThirdPartyUser{
-			userservice.ThirdPartyUser{
+			{
 				Name:  "test",
 				Email: "test",
 			},

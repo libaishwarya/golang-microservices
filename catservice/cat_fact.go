@@ -1,4 +1,4 @@
-package userservice
+package catservice
 
 type CatFact struct {
 	Fact   string `json:"fact"`
@@ -6,5 +6,5 @@ type CatFact struct {
 }
 
 type CatFactService interface {
-	GetCatFact() (*CatFact, error)
+	GetCatFact() (CatFact, error)
 }

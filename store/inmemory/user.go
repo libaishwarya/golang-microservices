@@ -4,26 +4,18 @@ import (
 	"errors"
 
 	"github.com/libaishwarya/myapp/store"
-	"github.com/libaishwarya/myapp/userservice"
 )
 
 type InMemoryUserStore struct {
-	users map[string]*store.User
-	store []store.ExternalUser
-}
-
-type InMemoryStore struct {
-	catFacts []userservice.CatFact
+	users    map[string]*store.User
+	store    []store.ExternalUser
+	catFacts []store.CatFact
 }
 
 func NewInMemoryUserStore() *InMemoryUserStore {
 	return &InMemoryUserStore{
-		users: make(map[string]*store.User),
-	}
-}
-func NewInMemoryStore() *InMemoryStore {
-	return &InMemoryStore{
-		catFacts: []userservice.CatFact{},
+		users:    make(map[string]*store.User),
+		catFacts: []store.CatFact{},
 	}
 }
 func (s *InMemoryUserStore) CreateUser(user *store.User) error {
@@ -46,7 +38,8 @@ func (s *InMemoryUserStore) StoreRes(ExternalApi *store.ExternalUser) error {
 	s.store = append(s.store, *ExternalApi)
 	return nil
 }
-func (s *InMemoryStore) StoreCatFact(fact *userservice.CatFact) error {
+
+func (s *InMemoryUserStore) StoreCatFact(fact *store.CatFact) error {
 	s.catFacts = append(s.catFacts, *fact)
 	return nil
 }
